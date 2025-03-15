@@ -1,0 +1,50 @@
+[gd_scene load_steps=7 format=3 uid="uid://cy7w5uw7rchsh"]
+
+[ext_resource type="Script" uid="uid://b3hjy5vj7e5c6" path="res://main.gd" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://8vyuhyx0xogt" path="res://addons/freecam_3D/freecam.gd" id="2_0xm2m"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
+
+[sub_resource type="Sky" id="Sky_0xm2m"]
+sky_material = SubResource("ProceduralSkyMaterial_ig7tw")
+
+[sub_resource type="Environment" id="Environment_h2yge"]
+background_mode = 2
+sky = SubResource("Sky_0xm2m")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0xm2m"]
+transparency = 1
+albedo_color = Color(0, 1, 0, 0.85098)
+emission = Color(0, 1, 0, 1)
+
+[node name="main" type="Node3D"]
+script = ExtResource("1_ig7tw")
+
+[node name="MarchingCubes" type="GDExample" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_h2yge")
+
+[node name="Freecam3D" type="Camera3D" parent="."]
+script = ExtResource("2_0xm2m")
+metadata/_custom_type_script = "uid://8vyuhyx0xogt"
+
+[node name="MarchMesh" type="MeshInstance3D" parent="."]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MarchMesh"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MarchMesh/StaticBody3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+shadow_enabled = true
+
+[node name="Timer" type="Timer" parent="."]
+autostart = true
+
+[node name="TestSphere" type="CSGSphere3D" parent="."]
+visible = false
+radius = 1.0
+radial_segments = 8
+material = SubResource("StandardMaterial3D_0xm2m")
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
