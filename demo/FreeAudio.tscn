@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cer5fs72bfrhv"]
+
+[ext_resource type="Script" uid="uid://cylpk55xwiji2" path="res://free_audio.gd" id="1_kyqm3"]
+
+[node name="FreeAudio" type="AudioStreamPlayer3D"]
+attenuation_filter_cutoff_hz = 20500.0
+script = ExtResource("1_kyqm3")
+
+[connection signal="finished" from="." to="." method="_on_finished"]

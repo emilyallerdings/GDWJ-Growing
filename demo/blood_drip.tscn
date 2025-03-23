@@ -1,0 +1,61 @@
+[gd_scene load_steps=9 format=3 uid="uid://dpy1ovmry5o07"]
+
+[ext_resource type="Texture2D" uid="uid://dc578mkmq7sfb" path="res://8200-normal.jpg" id="1_06sbm"]
+
+[sub_resource type="Curve" id="Curve_f032t"]
+_limits = [0.0, 3.0, 0.0, 1.0]
+_data = [Vector2(0, 0), 0.0, -1.28988, 0, 0, Vector2(1, 3), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_06sbm"]
+curve = SubResource("Curve_f032t")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_8jkhn"]
+lifetime_randomness = 0.36
+gravity = Vector3(0, -5, 0)
+scale_min = 0.1
+scale_max = 0.2
+scale_over_velocity_curve = SubResource("CurveTexture_06sbm")
+
+[sub_resource type="Curve" id="Curve_3ed14"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.90301, 0.108016), 0.0, 0.0, 0, 0, Vector2(1, 0.0726902), -1.32031, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_48hve"]
+albedo_color = Color(0.397482, 5.53504e-07, 1.68458e-07, 1)
+normal_enabled = true
+normal_texture = ExtResource("1_06sbm")
+clearcoat_enabled = true
+clearcoat_roughness = 0.0
+refraction_enabled = true
+billboard_mode = 2
+billboard_keep_scale = true
+
+[sub_resource type="RibbonTrailMesh" id="RibbonTrailMesh_1irwi"]
+material = SubResource("StandardMaterial3D_48hve")
+shape = 0
+curve = SubResource("Curve_3ed14")
+
+[sub_resource type="GDScript" id="GDScript_f032t"]
+script/source = "extends GPUParticles3D
+
+func _ready() -> void:
+	emitting = true
+
+
+func _on_finished() -> void:
+	queue_free()
+	pass # Replace with function body.
+"
+
+[node name="BloodDrip" type="GPUParticles3D"]
+emitting = false
+amount = 1
+lifetime = 2.0
+one_shot = true
+fixed_fps = 10
+process_material = SubResource("ParticleProcessMaterial_8jkhn")
+draw_pass_1 = SubResource("RibbonTrailMesh_1irwi")
+script = SubResource("GDScript_f032t")
+
+[connection signal="finished" from="." to="." method="_on_finished"]

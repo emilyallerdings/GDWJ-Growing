@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://cf602tokm60tc"]
+
+[sub_resource type="GDScript" id="GDScript_cegan"]
+script/source = "extends Node
+
+@export var dialog:Array[String] = []
+"
+
+[node name="DialogComponent" type="Node"]
+script = SubResource("GDScript_cegan")

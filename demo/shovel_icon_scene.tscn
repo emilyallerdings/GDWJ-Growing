@@ -1,0 +1,61 @@
+[gd_scene load_steps=5 format=3 uid="uid://8ueka1g82kp4"]
+
+[ext_resource type="PackedScene" uid="uid://ddwxyqa8htd7d" path="res://injection.tscn" id="1_bhwge"]
+
+[sub_resource type="GDScript" id="GDScript_bhwge"]
+script/source = "extends Node3D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass
+	
+func  _unhandled_input(event: InputEvent) -> void:
+	var img:ViewportTexture = $SubViewport.get_texture()
+	var image:Image = img.get_image()
+	print(image)
+	image.save_png(\"syringe_icon.png\")
+
+
+	
+"
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_bhwge"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="Environment" id="Environment_g2wr0"]
+background_mode = 1
+fog_mode = 1
+fog_light_energy = 0.07
+fog_density = 1.0
+adjustment_enabled = true
+adjustment_brightness = 0.74
+adjustment_contrast = 1.26
+adjustment_saturation = 1.4
+
+[node name="ShovelIconScene" type="Node3D"]
+script = SubResource("GDScript_bhwge")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(292, 291)
+texture = SubResource("ViewportTexture_bhwge")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+own_world_3d = true
+transparent_bg = true
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport"]
+transform = Transform3D(-4.37114e-08, 0.472551, -0.881304, 0, 0.881304, 0.472551, 1, 2.06559e-08, -3.8523e-08, 0, 0, 0)
+projection = 1
+fov = 49.1467
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewport"]
+environment = SubResource("Environment_g2wr0")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport/WorldEnvironment"]
+transform = Transform3D(1, 0, 0, 0, 0.0436193, 0.999048, 0, -0.999048, 0.0436193, -0.00146419, 0.76341, 0.000477612)
+light_color = Color(0.473976, 0.473976, 0.473976, 1)
+light_energy = 5.181
+
+[node name="INJECTION" parent="SubViewport" instance=ExtResource("1_bhwge")]
+transform = Transform3D(0.0707107, -0.0707107, 3.09086e-09, 0, -4.37114e-09, -0.1, 0.0707107, 0.0707107, -3.09086e-09, 0.477421, -0.166612, 0.0731231)

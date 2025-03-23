@@ -1,0 +1,56 @@
+[gd_scene load_steps=5 format=3 uid="uid://8ueka1g82kp4"]
+
+[ext_resource type="PackedScene" uid="uid://bg21u80eqygy1" path="res://shovel/scene.gltf" id="1_bhwge"]
+
+[sub_resource type="GDScript" id="GDScript_bhwge"]
+script/source = "extends Node3D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	await get_tree().create_timer(0.1)
+	var img:ViewportTexture = $SubViewport.get_texture()
+	var image:Image = img.get_image()
+	image.save_png(\"shovel_icon.png\")
+	print($Sprite2D.texture.get_image())
+"
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_bhwge"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="Environment" id="Environment_g2wr0"]
+background_mode = 1
+fog_mode = 1
+fog_light_energy = 0.07
+fog_density = 1.0
+adjustment_enabled = true
+adjustment_brightness = 0.74
+adjustment_contrast = 1.26
+adjustment_saturation = 1.4
+
+[node name="ShovelIconScene" type="Node3D"]
+script = SubResource("GDScript_bhwge")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(292, 291)
+texture = SubResource("ViewportTexture_bhwge")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+own_world_3d = true
+transparent_bg = true
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport"]
+transform = Transform3D(0.81308, 0.220002, -0.538981, 0, 0.925842, 0.377911, 0.582152, -0.307272, 0.752783, -0.463986, 0.565038, -0.237767)
+projection = 1
+fov = 49.1467
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewport"]
+environment = SubResource("Environment_g2wr0")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport/WorldEnvironment"]
+transform = Transform3D(1, 0, 0, 0, 0.0436193, 0.999048, 0, -0.999048, 0.0436193, -0.00146419, 0.76341, 0.000477612)
+light_color = Color(0.473976, 0.473976, 0.473976, 1)
+light_energy = 5.181
+
+[node name="Sketchfab_Scene" parent="SubViewport" instance=ExtResource("1_bhwge")]
+transform = Transform3D(-0.111061, -0.622643, 0.774584, 0.522943, 0.626164, 0.578316, -0.845101, 0.469292, 0.256065, -0.171469, 0, -1.09063)

@@ -1,0 +1,95 @@
+[gd_scene load_steps=3 format=3 uid="uid://ghmqyqmhf8ud"]
+
+[ext_resource type="LabelSettings" uid="uid://d3x87dxbfmgnv" path="res://menu_label.tres" id="1_ca0ty"]
+[ext_resource type="PackedScene" uid="uid://cj2rl57jfmnsw" path="res://start_button.tscn" id="2_msj2j"]
+
+[node name="OptionsControl" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -14.5
+offset_right = 75.0
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Options:"
+label_settings = ExtResource("1_ca0ty")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BackButton" parent="." instance=ExtResource("2_msj2j")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -46.0
+offset_top = 160.0
+offset_right = 46.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "BACK"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -117.5
+offset_top = 40.0
+offset_right = 117.5
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+text = "Volume:"
+label_settings = ExtResource("1_ca0ty")
+
+[node name="HSlider" type="HSlider" parent="HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_vertical = 1
+focus_mode = 0
+value = 50.0
+scrollable = false
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -117.5
+offset_top = 100.0
+offset_right = 117.5
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="HBoxContainer2"]
+layout_mode = 2
+text = "Mouse Speed Clamp:"
+label_settings = ExtResource("1_ca0ty")
+
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer2"]
+layout_mode = 2
+button_pressed = true

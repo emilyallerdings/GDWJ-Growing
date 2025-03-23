@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://e00lofcsr4yk"]
+
+[ext_resource type="Script" uid="uid://d1x5k6gpd1ios" path="res://march_mesh.gd" id="1_wmfp7"]
+[ext_resource type="AudioStream" uid="uid://djgfc7megoinf" path="res://audio/flesh_ambiance.ogg" id="2_fokin"]
+[ext_resource type="Material" uid="uid://dc6pturmi0sva" path="res://fleshmat2.tres" id="3_co1dw"]
+
+[node name="FleshBall" type="Node3D" node_paths=PackedStringArray("main") groups=["fleshball"]]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+script = ExtResource("1_wmfp7")
+main = NodePath("")
+
+[node name="DigEffectDur" type="Timer" parent="."]
+one_shot = true
+
+[node name="FleshAmbiance" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(0.666667, 0, 0, 0, 0.666667, 0, 0, 0, 0.666667, 8, 8, 8)
+stream = ExtResource("2_fokin")
+pitch_scale = 0.51
+max_distance = 20.0
+
+[node name="TestFlesh" type="MeshInstance3D" parent="."]
+material_override = ExtResource("3_co1dw")
+
+[node name="TestFleshBody" type="StaticBody3D" parent="." groups=["fleshball"]]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TestFleshBody"]
+
+[connection signal="timeout" from="DigEffectDur" to="." method="_on_dig_effect_dur_timeout"]

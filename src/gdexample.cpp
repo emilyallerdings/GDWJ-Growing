@@ -319,7 +319,6 @@ const float ISO_LEVEL = 0.5f;
 
 void GDExample::_bind_methods() {
     ClassDB::bind_method(D_METHOD("generate_marching_cubes", "chunk_size", "scalar_field"), &GDExample::generate_marching_cubes);
-    ClassDB::bind_method(D_METHOD("generate_mesh", "chunk_size", "scalar_field"), &GDExample::generate_mesh);
 }
 
 GDExample::GDExample() {
@@ -330,62 +329,28 @@ GDExample::~GDExample() {
 	// Add your cleanup here.
 }
 
-
-Ref<ArrayMesh> GDExample::generate_mesh(int chunk_size, PackedFloat32Array scalar_field){
+Vector3 GDExample::linear_interp(Vector4 p1, Vector4 p2, float isolevel)
+{
+    float t = (isolevel - p1.w) / (p2.w - p1.w);
     
-    PackedVector3Array vertices;
-
-    int i = 0;
-    vertices = generate_marching_cubes(chunk_size, scalar_field);
-    Ref<SurfaceTool> st;
-    st.instantiate();
-    st->begin(Mesh::PRIMITIVE_TRIANGLES);
-
-    for(i=0; i < vertices.size(); i ++){
-        st->add_vertex(vertices[i]);
-    }
-
-    st->generate_normals();
-
-    Ref<ArrayMesh> mesh = st->commit();
-
-    /*for(i=0; i < vertices.size(); i += 3){
-        A = vertices[i];
-        B = vertices[i+1];
-        C = vertices[i+2];
-        AB = B - A;
-        AC = C - A;
-        normal = vec3_cross(AB,AC).normalized();
-
-        vertex_normals[A] = vertex_normals[A] + normal;
-        vertex_normals[A] = vertex_normals[B] + normal;
-        vertex_normals[A] = vertex_normals[C] + normal;
-    }
-
-    for(i=0; i < vertices.size(); i ++){
-        normals.append(vertex_normals[vertices[i]].normalized());
-    }
-
-    Ref<ArrayMesh> array_mesh;
-    array_mesh.instantiate();
-
-    Array arrays;
-    arrays.resize(Mesh::ARRAY_MAX);
-
-    arrays[Mesh::ARRAY_VERTEX] = vertices;
-    arrays[Mesh::ARRAY_NORMAL] = normals;
-
-    array_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);*/
-
-    
-    return mesh;
+    Vector3 nvec = Vector3(
+        roundf((p1.x + t * (p2.x - p1.x)) * 10.0)/10.0,
+        roundf((p1.y + t * (p2.y - p1.y)) * 10.0)/10.0,
+        roundf((p1.z + t * (p2.z - p1.z)) * 10.0)/10.0
+    );
+    return nvec;
 }
 
-PackedVector3Array GDExample::generate_marching_cubes(int chunk_size, PackedFloat32Array scalar_field){
+
+PackedVector3Array GDExample::generate_marching_cubes(int chunk_size, Vector3 chunk_pos, PackedFloat32Array scalar_field, Vector3 scalar_size){
     PackedVector3Array vertices;
     Vector4 cube[8];
     Vector3 vertlist[12];
+    int size = scalar_size.x;
 
+    int z_start = chunk_pos.z * chunk_size;
+    int y_start = chunk_pos.y * chunk_size;
+    int x_start = chunk_pos.x * chunk_size;
 
     
     int x,y,z;
@@ -393,7 +358,7 @@ PackedVector3Array GDExample::generate_marching_cubes(int chunk_size, PackedFloa
     for(z=0;z<chunk_size;z++){
         for(y=0;y<chunk_size;y++){
             for(x=0;x<chunk_size;x++){
-                polygonize(x,y,z,scalar_field,vertices,cube,vertlist,chunk_size);
+                polygonize(x + x_start,y + y_start,z + z_start,scalar_field,vertices,cube,vertlist,size);
             }
         }
     }
@@ -407,7 +372,7 @@ void GDExample::polygonize(int x, int y, int z, const PackedFloat32Array scalar_
     int cubeindex = 0;
     int idx, sx, sy, sz, i, edge_flag, v1, v2;
 
-    int chunk_sizeex = chunk_size + 1;
+    int chunk_sizeex = chunk_size;
     int chunk_sizeex2 = chunk_sizeex * chunk_sizeex;
 
     for(i = 0; i < 8; i++){
@@ -442,10 +407,11 @@ void GDExample::polygonize(int x, int y, int z, const PackedFloat32Array scalar_
             v1 = EDGE_CONNECTIONS[i][0];
             v2 = EDGE_CONNECTIONS[i][1];
         
-            vertlist[i].x = (cube[v1].x + cube[v2].x) / 2.0;
-            vertlist[i].y = (cube[v1].y + cube[v2].y) / 2.0;
-            vertlist[i].z = (cube[v1].z + cube[v2].z) / 2.0;
-        
+            //vertlist[i].x = (cube[v1].x + cube[v2].x) / 2.0;
+            //vertlist[i].y = (cube[v1].y + cube[v2].y) / 2.0;
+            //vertlist[i].z = (cube[v1].z + cube[v2].z) / 2.0;
+
+            vertlist[i] = linear_interp(cube[v1], cube[v2], ISO_LEVEL);
 
         }
     }

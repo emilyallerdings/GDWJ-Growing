@@ -1,0 +1,94 @@
+[gd_scene load_steps=17 format=3 uid="uid://cwdx2bwbi523p"]
+
+[ext_resource type="Script" uid="uid://drdasxh45wqg" path="res://grinder_particles.gd" id="1_cxdw5"]
+[ext_resource type="Material" uid="uid://dipdru14dqudw" path="res://GrinderBloodParticles.tres" id="1_hkwuv"]
+[ext_resource type="Shader" uid="uid://6lddjbiqftjp" path="res://fleshparticles2.gdshader" id="2_0qe00"]
+[ext_resource type="Texture2D" uid="uid://cfdent7autgw3" path="res://flesh/others_0001_normal_opengl_1k.png" id="3_cxdw5"]
+[ext_resource type="AudioStream" uid="uid://6kvvyrhqrrk2" path="res://audio/grind.ogg" id="5_exuoa"]
+
+[sub_resource type="Curve" id="Curve_exuoa"]
+_data = [Vector2(0.337121, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_8awvp"]
+curve = SubResource("Curve_exuoa")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_7uc7r"]
+emission_shape = 3
+emission_box_extents = Vector3(0, 0.1, 0.5)
+spread = 25.0
+initial_velocity_min = 3.0
+initial_velocity_max = 5.0
+scale_min = 0.8
+scale_max = 1.2
+scale_curve = SubResource("CurveTexture_8awvp")
+
+[sub_resource type="QuadMesh" id="QuadMesh_0qe00"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_6sbkr"]
+noise_type = 3
+seed = 10
+frequency = 0.0038
+fractal_type = 0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_eg004"]
+resource_local_to_scene = true
+generate_mipmaps = false
+seamless = true
+noise = SubResource("FastNoiseLite_6sbkr")
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_1vphy"]
+load_path = "res://.godot/imported/others_0001_color_1k.jpg-18bb58a2326f91063f7f24acadfba1c3.s3tc.ctex"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tptid"]
+render_priority = 0
+shader = ExtResource("2_0qe00")
+shader_parameter/tex_frg_20 = SubResource("CompressedTexture2D_1vphy")
+shader_parameter/tex_frg_2 = SubResource("NoiseTexture2D_eg004")
+shader_parameter/clearcoat = 0.0
+shader_parameter/clearcoat_roughness = 0.0
+shader_parameter/normal_texture = ExtResource("3_cxdw5")
+
+[sub_resource type="Curve" id="Curve_sf2la"]
+_data = [Vector2(0.337121, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_vx1uo"]
+curve = SubResource("Curve_sf2la")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_g2al2"]
+emission_shape = 3
+emission_box_extents = Vector3(0, 0.1, 0.5)
+spread = 25.0
+initial_velocity_min = 3.0
+initial_velocity_max = 5.0
+scale_min = 0.2
+scale_max = 0.5
+scale_curve = SubResource("CurveTexture_vx1uo")
+
+[node name="GrinderParts" type="Node3D"]
+script = ExtResource("1_cxdw5")
+
+[node name="GrinderParticles" type="GPUParticles3D" parent="."]
+material_override = ExtResource("1_hkwuv")
+emitting = false
+amount = 128
+lifetime = 0.5
+randomness = 0.09
+fixed_fps = 24
+process_material = SubResource("ParticleProcessMaterial_7uc7r")
+draw_pass_1 = SubResource("QuadMesh_0qe00")
+
+[node name="GrinderParticles2" type="GPUParticles3D" parent="."]
+material_override = SubResource("ShaderMaterial_tptid")
+emitting = false
+amount = 32
+lifetime = 0.5
+randomness = 0.09
+fixed_fps = 24
+process_material = SubResource("ParticleProcessMaterial_g2al2")
+draw_pass_1 = SubResource("QuadMesh_0qe00")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("5_exuoa")
+volume_db = -25.0

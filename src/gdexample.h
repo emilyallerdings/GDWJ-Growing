@@ -10,6 +10,7 @@
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/classes/surface_tool.hpp>
 #include <array>
+#include <cmath>
 #include <map>
 #include <cstring>
 
@@ -24,9 +25,9 @@ protected:
 public:
 	GDExample();
 	~GDExample();
-	Ref<ArrayMesh> generate_mesh(int chunk_size, PackedFloat32Array scalar_field);
-	PackedVector3Array generate_marching_cubes(int chunk_size, PackedFloat32Array scalar_field);
+	PackedVector3Array generate_marching_cubes(int chunk_size, Vector3 chunk_pos, PackedFloat32Array scalar_field, Vector3 scalar_size);
 	void polygonize(int x, int y, int z, const PackedFloat32Array scalar_field, PackedVector3Array &vertices, Vector4 (&cube)[8], Vector3 (&vertlist)[12], int chunk_size);
+	Vector3 linear_interp(Vector4 p1, Vector4 p2, float isolevel);
 };
 
 }

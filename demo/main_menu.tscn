@@ -1,0 +1,240 @@
+[gd_scene load_steps=13 format=3 uid="uid://d0wa7jwmrvb5y"]
+
+[ext_resource type="Script" uid="uid://d0w0803b2bffy" path="res://main_menu.gd" id="1_06t4h"]
+[ext_resource type="PackedScene" uid="uid://c6tx11kgjb13w" path="res://test_scene.tscn" id="2_7vrkn"]
+[ext_resource type="FontFile" uid="uid://bm3luivh6a5s1" path="res://fonts/VCR_OSD_MONO_1.001.ttf" id="3_fu7sn"]
+[ext_resource type="PackedScene" uid="uid://cj2rl57jfmnsw" path="res://start_button.tscn" id="3_jix8l"]
+[ext_resource type="PackedScene" uid="uid://ghmqyqmhf8ud" path="res://options_control.tscn" id="4_glbon"]
+[ext_resource type="AudioStream" uid="uid://q0qjwn1opxov" path="res://audio/bleep.ogg" id="6_nlkkf"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_7vrkn"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="LabelSettings" id="LabelSettings_jix8l"]
+font = ExtResource("3_fu7sn")
+font_size = 150
+
+[sub_resource type="Animation" id="Animation_glbon"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../OptionsControl:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../OptionsControl:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_nlkkf"]
+resource_name = "fade_control"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../OptionsControl:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../OptionsControl:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.4999, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [true, true, false]
+}
+
+[sub_resource type="Animation" id="Animation_jix8l"]
+resource_name = "fade_main"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.4999, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [true, true, false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_nlkkf"]
+_data = {
+&"RESET": SubResource("Animation_glbon"),
+&"fade_control": SubResource("Animation_nlkkf"),
+&"fade_main": SubResource("Animation_jix8l")
+}
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_06t4h")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+own_world_3d = true
+size = Vector2i(1152, 648)
+
+[node name="LabMeatTitle" parent="SubViewport" instance=ExtResource("2_7vrkn")]
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = SubResource("ViewportTexture_7vrkn")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -217.0
+offset_right = 217.0
+offset_bottom = 172.0
+grow_horizontal = 2
+text = "LAB MEAT"
+label_settings = SubResource("LabelSettings_jix8l")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+root_node = NodePath("../MainControl")
+libraries = {
+&"": SubResource("AnimationLibrary_nlkkf")
+}
+
+[node name="OptionsControl" parent="." instance=ExtResource("4_glbon")]
+visible = false
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+
+[node name="HSlider" parent="OptionsControl/HBoxContainer" index="1"]
+max_value = 2.0
+step = 0.1
+value = 1.0
+
+[node name="MainControl" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 498.0
+offset_top = 424.0
+offset_right = 538.0
+offset_bottom = 464.0
+
+[node name="StartButton" parent="MainControl" instance=ExtResource("3_jix8l")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -140.0
+offset_right = 136.0
+offset_bottom = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "START"
+
+[node name="OptionsButton" parent="MainControl" instance=ExtResource("3_jix8l")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -80.0
+offset_right = 136.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ExitButton" parent="MainControl" instance=ExtResource("3_jix8l")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 136.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "EXIT"
+
+[node name="TestAudio" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_nlkkf")
+
+[connection signal="pressed" from="OptionsControl/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="pressed" from="MainControl/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="MainControl/OptionsButton" to="." method="_on_options_button_pressed"]
+[connection signal="pressed" from="MainControl/ExitButton" to="." method="_on_exit_button_pressed"]
+
+[editable path="OptionsControl"]

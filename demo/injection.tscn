@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://ddwxyqa8htd7d"]
+
+[ext_resource type="Script" uid="uid://exc6g7n04ovy" path="res://pickup.gd" id="1_5n76x"]
+[ext_resource type="PackedScene" uid="uid://c0nqh1u4cgkkj" path="res://syringe.tscn" id="2_5jtfe"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_a6jrf"]
+size = Vector3(11.1166, 2.30511, 2.651)
+
+[node name="INJECTION" type="StaticBody3D" groups=["pickup"]]
+transform = Transform3D(0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0)
+script = ExtResource("1_5n76x")
+pickup_name = "INJECTION"
+
+[node name="Syringe" parent="." instance=ExtResource("2_5jtfe")]
+transform = Transform3D(0.594823, 0.803857, 0, -0.803857, 0.594823, 0, 0, 0, 1, 1.705, -2.265, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.55164, 0.237938, 0.535431)
+shape = SubResource("BoxShape3D_a6jrf")

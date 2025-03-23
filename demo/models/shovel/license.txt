@@ -1,0 +1,11 @@
+Model Information:
+* title:	Old Shovel
+* source:	https://sketchfab.com/3d-models/old-shovel-50ec3232e4ee4100a5f1ccf4acc4018c
+* author:	Aki_Kato (https://sketchfab.com/Aki_Kato)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Old Shovel" (https://sketchfab.com/3d-models/old-shovel-50ec3232e4ee4100a5f1ccf4acc4018c) by Aki_Kato (https://sketchfab.com/Aki_Kato) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

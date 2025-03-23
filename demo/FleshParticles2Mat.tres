@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3 uid="uid://1ypl0f4vty68"]
+
+[ext_resource type="Shader" uid="uid://6lddjbiqftjp" path="res://fleshparticles2.gdshader" id="1_r7wah"]
+[ext_resource type="Texture2D" uid="uid://da30j80i4kddw" path="res://particles_noise.tres" id="2_5tqnj"]
+[ext_resource type="Texture2D" uid="uid://bb2ygwc0it60m" path="res://flesh/others_0001_color_1k.jpg" id="3_2eo2p"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_r7wah")
+shader_parameter/tex_frg_20 = ExtResource("3_2eo2p")
+shader_parameter/tex_frg_2 = ExtResource("2_5tqnj")
+shader_parameter/clearcoat = 0.0
+shader_parameter/clearcoat_roughness = 0.0

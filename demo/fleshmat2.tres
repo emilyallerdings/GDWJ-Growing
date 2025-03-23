@@ -1,0 +1,251 @@
+[gd_resource type="ShaderMaterial" load_steps=12 format=3 uid="uid://dc6pturmi0sva"]
+
+[ext_resource type="Texture2D" uid="uid://ddpgqkdmiq2mh" path="res://guts-bl/guts_albedo.png" id="1_o5b4l"]
+[ext_resource type="Texture2D" uid="uid://bb2ygwc0it60m" path="res://flesh/others_0001_color_1k.jpg" id="2_cim5v"]
+[ext_resource type="Texture2D" uid="uid://i2mvmy7jpcnh" path="res://guts-bl/guts_ao.png" id="3_7vihq"]
+[ext_resource type="Texture2D" uid="uid://crsbjupax3jm8" path="res://flesh/others_0001_ao_1k.jpg" id="4_aw7xl"]
+[ext_resource type="Texture2D" uid="uid://bqrmj15d2j0ky" path="res://guts-bl/guts_height.png" id="5_oc7s0"]
+[ext_resource type="Texture2D" uid="uid://bh7rfptgspkd2" path="res://flesh/others_0001_height_1k.png" id="6_wo6yg"]
+[ext_resource type="Texture2D" uid="uid://btxrc4tlqukad" path="res://guts-bl/guts_normal-ogl.png" id="7_65jeu"]
+[ext_resource type="Texture2D" uid="uid://cfdent7autgw3" path="res://flesh/others_0001_normal_opengl_1k.png" id="8_737co"]
+[ext_resource type="Texture2D" uid="uid://bbfkei2m5vegb" path="res://guts-bl/guts_roughness.png" id="9_xsxg0"]
+[ext_resource type="Texture2D" uid="uid://c1llx2v1lobmp" path="res://flesh/others_0001_roughness_1k.jpg" id="10_k6tv7"]
+
+[sub_resource type="Shader" id="Shader_kek77"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.4.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
+
+uniform sampler3D noise_texture;
+
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo1 : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D texture_albedo2 : source_color, filter_linear_mipmap, repeat_enable;
+uniform ivec2 albedo_texture_size;
+uniform float point_size : hint_range(0.1, 128.0, 0.1);
+
+uniform float roughness : hint_range(0.0, 1.0);
+uniform sampler2D texture_metallic : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness1 : hint_roughness_r, filter_linear_mipmap, repeat_enable;
+uniform sampler2D texture_roughness2 : hint_roughness_r, filter_linear_mipmap, repeat_enable;
+
+uniform float specular : hint_range(0.0, 1.0, 0.01);
+uniform float metallic : hint_range(0.0, 1.0, 0.01);
+
+uniform sampler2D texture_normal1 : hint_roughness_normal, filter_linear_mipmap, repeat_enable;
+uniform sampler2D texture_normal2 : hint_roughness_normal, filter_linear_mipmap, repeat_enable;
+uniform float normal_scale : hint_range(-16.0, 16.0);
+
+uniform sampler2D texture_ambient_occlusion1 : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform sampler2D texture_ambient_occlusion2 : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform vec4 ao_texture_channel;
+uniform float ao_light_affect : hint_range(0.0, 1.0, 0.01);
+
+uniform sampler2D texture_heightmap1 : hint_default_black, filter_linear_mipmap, repeat_enable;
+uniform sampler2D texture_heightmap2 : hint_default_black, filter_linear_mipmap, repeat_enable;
+uniform float heightmap_scale : hint_range(-16.0, 16.0, 0.001);
+uniform int heightmap_min_layers : hint_range(1, 64);
+uniform int heightmap_max_layers : hint_range(1, 64);
+uniform vec2 heightmap_flip;
+varying vec3 uv1_triplanar_pos;
+varying vec3 uv2_triplanar_pos;
+
+uniform float uv1_blend_sharpness : hint_range(0.0, 150.0, 0.001);
+varying vec3 uv1_power_normal;
+uniform float uv2_blend_sharpness : hint_range(0.0, 150.0, 0.001);
+varying vec3 uv2_power_normal;
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+uniform float pulse_speed : hint_range(0.1, 5.0) = 2.0;
+uniform float pulse_strength : hint_range(0.0, 0.3) = 0.1;
+uniform float uv_warp_strength : hint_range(0.0, 0.05) = 0.02;
+uniform float glow_intensity : hint_range(0.0, 0.5) = 0.1;
+
+uniform float custom_time = 0.0;
+
+vec3 hash(vec3 p) {
+    p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
+             dot(p, vec3(269.5, 183.3, 246.1)),
+             dot(p, vec3(113.5, 271.9, 124.6)));
+    return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+}
+
+float perlin_noise(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+
+    vec3 u = f * f * (3.0 - 2.0 * f);
+
+    return mix(mix(mix(dot(hash(i + vec3(0.0, 0.0, 0.0)), f - vec3(0.0, 0.0, 0.0)),
+                       dot(hash(i + vec3(1.0, 0.0, 0.0)), f - vec3(1.0, 0.0, 0.0)), u.x),
+                   mix(dot(hash(i + vec3(0.0, 1.0, 0.0)), f - vec3(0.0, 1.0, 0.0)),
+                       dot(hash(i + vec3(1.0, 1.0, 0.0)), f - vec3(1.0, 1.0, 0.0)), u.x), u.y),
+               mix(mix(dot(hash(i + vec3(0.0, 0.0, 1.0)), f - vec3(0.0, 0.0, 1.0)),
+                       dot(hash(i + vec3(1.0, 0.0, 1.0)), f - vec3(1.0, 0.0, 1.0)), u.x),
+                   mix(dot(hash(i + vec3(0.0, 1.0, 1.0)), f - vec3(0.0, 1.0, 1.0)),
+                       dot(hash(i + vec3(1.0, 1.0, 1.0)), f - vec3(1.0, 1.0, 1.0)), u.x), u.y), u.z);
+}
+
+float get_blended_noise(vec3 vertex_position, float time) {
+    // Sample noise at the current position and a few offsets
+    float noise1 = perlin_noise(vertex_position * 2.0 + time);
+    float noise2 = perlin_noise((vertex_position + vec3(0.1, 0.0, 0.0)) * 2.0 + time); // X offset
+    float noise3 = perlin_noise((vertex_position + vec3(0.0, 0.1, 0.0)) * 2.0 + time); // Y offset
+    float noise4 = perlin_noise((vertex_position + vec3(0.0, 0.0, 0.1)) * 2.0 + time); // Z offset
+
+    // Average the noise samples to blend them
+    return (noise1 + noise2 + noise3 + noise4) * 0.25;
+}
+
+
+
+void vertex() {
+
+	float noise = get_blended_noise(VERTEX * 2.2, custom_time * 0.5 * pulse_speed);
+    float pulse = (noise - 0.5) * 2.0 * pulse_strength;
+    VERTEX +=  NORMAL * pulse;
+
+	vec3 normal = MODEL_NORMAL_MATRIX * NORMAL;
+
+	TANGENT = vec3(0.0, 0.0, -1.0) * abs(normal.x);
+	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.y);
+	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.z);
+	TANGENT = inverse(MODEL_NORMAL_MATRIX) * normalize(TANGENT);
+
+	BINORMAL = vec3(0.0, 1.0, 0.0) * abs(normal.x);
+	BINORMAL += vec3(0.0, 0.0, -1.0) * abs(normal.y);
+	BINORMAL += vec3(0.0, 1.0, 0.0) * abs(normal.z);
+	BINORMAL = inverse(MODEL_NORMAL_MATRIX) * normalize(BINORMAL);
+
+	// UV1 Triplanar: Enabled (with World Triplanar)
+	uv1_power_normal = pow(abs(normal), vec3(uv1_blend_sharpness));
+	uv1_triplanar_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz * uv1_scale + uv1_offset;
+	uv1_power_normal /= dot(uv1_power_normal, vec3(1.0));
+	uv1_triplanar_pos *= vec3(1.0, -1.0, 1.0);
+
+	// UV2 Triplanar: Enabled (with World Triplanar)
+	uv2_power_normal = pow(abs(mat3(MODEL_MATRIX) * NORMAL), vec3(uv2_blend_sharpness));
+	uv2_triplanar_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz * uv2_scale + uv2_offset;
+	uv2_power_normal /= dot(uv2_power_normal, vec3(1.0));
+	uv2_triplanar_pos *= vec3(1.0, -1.0, 1.0);
+
+	noise = get_blended_noise(VERTEX, custom_time * pulse_speed);
+    pulse = (noise - 0.5) * 2.0 * pulse_strength;
+    VERTEX +=  NORMAL * pulse;
+
+}
+
+vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
+	vec4 samp = vec4(0.0);
+	samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;
+	samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;
+	samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;
+	return samp;
+}
+
+void fragment() {
+
+  	float noise_factor = get_blended_noise(uv1_triplanar_pos * 0.25, 0.0); // Use world-space UVs for consistent noise
+    vec3 color_modulation = mix(vec3(0.8, 0.8, 0.8), vec3(1.2, 1.2, 1.2), noise_factor); // Slight variation in color
+
+    vec3 world_pos = uv1_triplanar_pos; // World-space position
+    vec3 normal = uv1_power_normal;
+
+    // Calculate triplanar blending weights
+    vec3 weights = abs(normal);
+    weights /= (weights.x + weights.y + weights.z);
+
+    // Noise-based blending (procedural)
+    float blend_factor = ((get_blended_noise(uv1_triplanar_pos * 0.25, 0)) + 1.0)/ 2.0;
+    blend_factor = smoothstep(0.3, 0.5, blend_factor * 1.0);
+
+    // Alternative: Use noise texture for more natural blending
+    // float blend_factor = texture(noise_texture, world_pos.xy * blend_scale).r;
+    // blend_factor = smoothstep(0.4, 0.6, blend_factor);
+
+    // Sample triplanar textures
+    vec4 tex_1 = triplanar_texture(texture_albedo1, weights, world_pos);
+    vec4 tex_2 = triplanar_texture(texture_albedo2, weights, world_pos);
+
+    // Blending between textures
+    vec4 blended_tex = mix(tex_1, tex_2, blend_factor);
+
+    // Apply final color
+    ALBEDO = blended_tex.rgb;
+
+	//if(COLOR.r > 0.6){
+	//	ALBEDO = albedo1.rgb * color_modulation;
+	//}else{
+	//	ALBEDO = albedo2.rgb * color_modulation; //* color_modulation2;
+	//}
+
+
+	float metallic_tex = dot(triplanar_texture(texture_metallic, uv1_power_normal, uv1_triplanar_pos), metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	SPECULAR = specular;
+
+	vec4 roughness_texture_channel = vec4(1.0, 0.0, 0.0, 0.0);
+	float roughness_tex1 = dot(triplanar_texture(texture_roughness1, weights, world_pos), roughness_texture_channel);
+	float roughness_tex2 = dot(triplanar_texture(texture_roughness2, weights, world_pos), roughness_texture_channel);
+
+	ROUGHNESS = mix(roughness_tex1, roughness_tex2, blend_factor);
+
+	// Normal Map: Enabled
+
+	vec3 normal_tex1 = triplanar_texture(texture_normal1, uv1_power_normal, uv1_triplanar_pos).rgb;
+	vec3 normal_tex2 = triplanar_texture(texture_normal2, uv1_power_normal, uv1_triplanar_pos).rgb;
+	NORMAL_MAP = mix(normal_tex1, normal_tex2, blend_factor);
+	NORMAL_MAP_DEPTH = normal_scale;
+
+	// Ambient Occlusion: Enabled
+	float ao_tex1 = dot(triplanar_texture(texture_ambient_occlusion1, uv1_power_normal, uv1_triplanar_pos), ao_texture_channel);
+	float ao_tex2 = dot(triplanar_texture(texture_ambient_occlusion2, uv1_power_normal, uv1_triplanar_pos), ao_texture_channel);
+	AO = mix(ao_tex1, ao_tex2, blend_factor);
+	AO_LIGHT_AFFECT = ao_light_affect;
+}
+"
+
+[resource]
+render_priority = 0
+shader = SubResource("Shader_kek77")
+shader_parameter/albedo = Color(0, 0, 0, 1)
+shader_parameter/texture_albedo1 = ExtResource("1_o5b4l")
+shader_parameter/texture_albedo2 = ExtResource("2_cim5v")
+shader_parameter/albedo_texture_size = Vector2i(1024, 1024)
+shader_parameter/point_size = 1.0
+shader_parameter/roughness = 1.0
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/texture_roughness1 = ExtResource("9_xsxg0")
+shader_parameter/texture_roughness2 = ExtResource("10_k6tv7")
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/texture_normal1 = ExtResource("7_65jeu")
+shader_parameter/texture_normal2 = ExtResource("8_737co")
+shader_parameter/normal_scale = 1.0
+shader_parameter/texture_ambient_occlusion1 = ExtResource("3_7vihq")
+shader_parameter/texture_ambient_occlusion2 = ExtResource("4_aw7xl")
+shader_parameter/ao_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/ao_light_affect = 0.0
+shader_parameter/texture_heightmap1 = ExtResource("5_oc7s0")
+shader_parameter/texture_heightmap2 = ExtResource("6_wo6yg")
+shader_parameter/heightmap_scale = 16.0
+shader_parameter/heightmap_min_layers = 8
+shader_parameter/heightmap_max_layers = 32
+shader_parameter/heightmap_flip = Vector2(1, 1)
+shader_parameter/uv1_blend_sharpness = 1.0
+shader_parameter/uv2_blend_sharpness = 1.0
+shader_parameter/uv1_scale = Vector3(0.5, 0.5, 0.5)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(0.5, 0.5, 0.5)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/pulse_speed = 0.55
+shader_parameter/pulse_strength = 0.08
+shader_parameter/uv_warp_strength = 0.02
+shader_parameter/glow_intensity = 0.1
+shader_parameter/custom_time = 0.0
