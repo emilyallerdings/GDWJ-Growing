@@ -10,7 +10,7 @@ const INJECTION = preload("res://injection.tscn")
 var cur_hover = null
 const INJECT = preload("res://audio/inject.ogg")
 const FLESH = preload("res://flesh.tscn")
-
+const ENDINGSCENE = preload("res://endingscene.tscn")
 var bus_index = AudioServer.get_bus_index("Reverb")
 
 var phone_ringing = false
@@ -50,6 +50,12 @@ func _on_focus_exited():
 	pause()
 
 func _set_high_quality_flesh(num):
+	if $FleshBall.end_seq:
+		$%FleshMass.visible = false
+		%FleshToFind.visible = false
+		%ObjectiveLabel.obj_kill()
+		%Ring.global_position.y -= 10
+		return
 	can_leave = false
 	var space_state = get_world_3d().direct_space_state
 
@@ -63,14 +69,15 @@ func _set_high_quality_flesh(num):
 		var query = PhysicsRayQueryParameters3D.create(g_pos, Vector3(g_pos.x, g_pos.y + 15, g_pos.z), 256)
 		query.hit_from_inside = true
 		var result = space_state.intersect_ray(query)
-		print(result)
-		while result:
+		#print(result)
+		while result || g_pos.y > 2:
+			
 			g_pos = $FleshBall.to_global($FleshBall.get_random_pos_in_surface())
 			query = PhysicsRayQueryParameters3D.create(g_pos, Vector3(g_pos.x, g_pos.y + 15, g_pos.z),256)
 			query.hit_from_inside = true
 			result = space_state.intersect_ray(query)
-			print(result)
-		
+			#print(result)
+		print(g_pos)
 		var n_flesh = FLESH.instantiate()
 		add_child(n_flesh)
 		
@@ -78,6 +85,10 @@ func _set_high_quality_flesh(num):
 		fleshies.append(n_flesh)
 		
 func _ready() -> void:
+	%ObjectiveLabel.visible = false
+	%FleshMass.visible = false
+	%FleshToFind.visible = false
+	
 	AudioServer.set_bus_mute(0, true)
 	$LoadingTransition/AnimationPlayer.play("dissolve")
 	await $LoadingTransition/AnimationPlayer.animation_finished
@@ -94,8 +105,15 @@ func _ready() -> void:
 	$LoadingTransition/AnimationPlayer.play_backwards("dissolve")
 	AudioServer.set_bus_mute(0, false)
 	await $LoadingTransition/AnimationPlayer.animation_finished
-	
+	if $FleshBall.end_seq:
+		week = 4
+		$Scene/airlockdoor.open_office_door()
+		$heart.visible = true
+		return
+
+
 	await get_tree().create_timer(3.0).timeout
+	
 	phone_ringing = true
 	$Scene/Phone/Phone/PhoneAudio.play(0)
 	
@@ -126,7 +144,7 @@ func _physics_process(delta: float) -> void:
 		
 		$Beep.pitch_scale = lerp(1.2, 0.9, (min_angle - 10.0) / 20.0)
 		$Beep.pitch_scale = clamp($Beep.pitch_scale, 0.9, 1.2)
-		print($Beep.pitch_scale)
+		#print($Beep.pitch_scale)
 		
 		if $Beep/BeepTimer.time_left > beep_delay:
 			$Beep/BeepTimer.start(beep_delay)
@@ -136,13 +154,6 @@ func _physics_process(delta: float) -> void:
 	_do_physics_query()
 
 func _unhandled_input(event: InputEvent) -> void:
-	
-	
-	if Input.is_key_pressed(KEY_9):
-		%Dialog.play_dialog(%Dialog.dialog_1, 0)
-		
-	if Input.is_key_pressed(KEY_8):
-		reset_flesh()
 		
 	if event.is_action_pressed("ui_cancel"):
 		if !paused:
@@ -158,6 +169,8 @@ func get_random_position_on_mesh() -> Vector3:
 		return global_position  # Default to the object's position if no mesh is available
 
 	var surface_count = mesh.get_surface_count()
+	if surface_count <=0:
+		return Vector3(0,0,0)
 	
 	# Pick a random surface
 	var surface_index = randi() % surface_count
@@ -197,9 +210,7 @@ func _do_physics_query():
 		
 		cur_hover = result
 		
-		if Input.is_action_just_pressed("click"):
-			print("just clicked")
-		
+
 		if result and result.collider.is_in_group("pickup"):
 			$Character.RETICLE.set_reticle(0)
 			if Input.is_action_just_pressed("click") && %Dialog.can_click:
@@ -237,7 +248,7 @@ func _do_physics_query():
 					await tween.finished
 
 					
-					print("injec finished")
+					#print("injec finished")
 					%Inventory.drop_item()
 
 					dont_dialog = true
@@ -278,15 +289,43 @@ func _do_physics_query():
 				$Scene/Phone/Phone/PhoneAudio.stop()
 				%Dialog.play_dialog(%Dialog.get_phone_dia(week), 0)
 				await %Dialog.dialog_ended
+				#print("d ended")
+				if week == 1:
+					%ObjectiveLabel.visible = true
+					%FleshMass.visible = true
+					%FleshToFind.visible = true
 				$Scene/airlockdoor.open_office_door()
 				airlock_office_open = true
 				pass
+		
+		if $FleshBall.end_seq && result && result.collider.name == "heart":
+			if %Inventory.slots[%Inventory.cur_sel].item == "SHOVEL":
+				$Character.RETICLE.set_reticle(0)
+				if Input.is_action_just_pressed("click"):
+					
+					shovel_anim.play("dig")
+					%Inventory.can_swap = false
+					await shovel.dig_signal
+					%Inventory.can_swap = true
+					$FleshBall.dig(%heart.global_position, Vector3.ZERO)
+					$heart.visible = false
+					$heart.dead = true
+					$heart/dead.play()
+					$FleshBall.time_scale = 8.0
+					await get_tree().create_timer(5.5).timeout
+
+					$FleshBall.dead = true
+					$FleshBall.time_scale = 0.0
+					can_leave = true
+					%ObjectiveLabel.obj_leave()
 				
+				
+		
 		if result and result.collider.has_node("DialogComponent") && !dont_dialog:
 			
 			$Character.RETICLE.set_reticle(0)
 			if Input.is_action_just_pressed("click") && %Dialog.can_click:
-				print("click dialog")
+				#print("click dialog")
 				%Dialog.play_dialog(result.collider.get_node("DialogComponent").dialog, 0)
 		
 func _on_drip_timer_timeout() -> void:
@@ -305,7 +344,7 @@ func _on_drip_timer_timeout() -> void:
 
 func change_vol(am):
 	cur_vol -= am
-	print("cur vol: ", cur_vol, "total: ", total_vol)
+	#print("cur vol: ", cur_vol, "total: ", total_vol)
 	%FleshMass.text = "Product Mass: " + str((int(cur_vol / total_vol * 100))) + "%"
 	if (int(cur_vol / total_vol * 100)) < 50:
 		
@@ -322,7 +361,7 @@ func change_vol(am):
 		
 func _on_area_3d_area_entered(area: Area3D) -> void:
 	AudioServer.set_bus_effect_enabled(bus_index, 0, true)  # Enable
-	print("HHAA")
+	#print("HHAA")
 	pass # Replace with function body.
 
 
@@ -374,12 +413,12 @@ func add_flesh_ball(pos):
 	
 	
 	
-	print("injecting at: ", pos)
+	#print("injecting at: ", pos)
 	
 	pos = pos / $FleshBall.scale.x
 	var r_pos = Vector3(round(pos.x), round(pos.y), round(pos.z))
 	
-	print("scaled/rounded: ", r_pos)
+	#print("scaled/rounded: ", r_pos)
 	
 	r_pos = Vector3(r_pos.x, max(0, r_pos.y), r_pos.z)
 	
@@ -387,15 +426,15 @@ func add_flesh_ball(pos):
 	r_pos.y = clampf(r_pos.y, 0, 4)
 	r_pos.z = clampf(r_pos.z, -6, 6)
 	
-	print("min y 0: ", r_pos)
+	#print("min y 0: ", r_pos)
 	var dir = Vector3.ZERO.direction_to(r_pos)
 	var n_pos = round(Vector3.ZERO + (dir * 3))
-	print("on sphere rad: ", n_pos)
+	#print("on sphere rad: ", n_pos)
 	if spheres.has(n_pos):
 		
 		spheres[n_pos] += 1
 		spheres[n_pos] = clamp(spheres[n_pos],1, 4)
-		print("sphere grew: ", spheres[n_pos])
+		#print("sphere grew: ", spheres[n_pos])
 	else:
 		spheres[n_pos] = 2
 		
@@ -413,10 +452,11 @@ func reset_flesh():
 	
 	total_vol =  $FleshBall.get_volume()
 	cur_vol = total_vol
+	%ObjectiveLabel.obj_find()
 	_set_high_quality_flesh(total_fleshies)
 	to_inject = total_fleshies
 	%FleshToFind.text = "Injected: " + str(to_inject - flesh_remaining) + "/" + str(to_inject)
-	%ObjectiveLabel.obj_find()
+	
 	%FleshMass.text = "Product Mass: " + str((int(cur_vol / total_vol * 100))) + "%"
 
 
@@ -424,16 +464,23 @@ func reset_flesh():
 
 
 func _on_leave_area_body_entered(body: Node3D) -> void:
-	print(body)
+	#print(body)
 	if !body.is_in_group("player"):
 		return
 	if !can_leave:
 		return
-		 
+	
+	week += 1
+	if week == 2:
+		$table.global_position.y = -100
+	if week == 5:
+		Transition.change_scene_no_load(ENDINGSCENE)
+		return
 
 	flesh_remaining = -1
 	can_leave = false
-	week += 1
+	
+
 	total_fleshies += 1
 	AudioServer.set_bus_mute(0, true)
 	$LoadingTransition/Week.text = "Week: " + str(week)
@@ -441,12 +488,28 @@ func _on_leave_area_body_entered(body: Node3D) -> void:
 	await $LoadingTransition/AnimationPlayer.animation_finished
 	$Character.global_transform = char_start
 	$Character/Head.rotation = Vector3.ZERO
+	
 		
+	if week == 4:
+		$FleshBall.end_sequence()
+		$heart.visible = true
+		$heart.set_collision_layer_value(5, true)
+	
 	reset_flesh()
 	$Scene/airlockdoor.reset_doors()
-	
+	var prev_vol = $Scene/airlockdoor/OfficeDoor.volume_db
+	if week == 4:
+		$Scene/airlockdoor/OfficeDoor.volume_db = -80
+		$Scene/airlockdoor.open_office_door()
 	
 	await get_tree().create_timer(2.0).timeout
+	if week == 4:
+		AudioServer.set_bus_mute(0, false)
+		$HomePhone.play()
+		await $HomePhone.finished
+		%Dialog.play_dialog(["BOSS", "We have a situation. Your coworkers... gone. No calls, no sign of them.", "Get in here. Now."], 0)
+		await %Dialog.dialog_ended
+		$Scene/airlockdoor/OfficeDoor.volume_db = prev_vol
 	$LoadingTransition/AnimationPlayer.play_backwards("dissolve")
 	AudioServer.set_bus_mute(0, false)
 	await $LoadingTransition/AnimationPlayer.animation_finished

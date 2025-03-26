@@ -7,6 +7,7 @@ var chunk_size_ex = chunk_size + 1
 var chunks_x = 4
 var chunks_z = 4
 var chunks_y = 4
+var dead = false
 
 const FLESH_PARTICLES = preload("res://FleshParticles.tscn")
 const FLESH_PARTICLES2 = preload("res://FleshParticles2.tscn")
@@ -42,15 +43,45 @@ var y_range = (chunks_y) * chunk_size + 1
 
 var scalar_size = Vector3(x_range, y_range, z_range)
 
+var end_seq = false
+
 func remesh():
 	#global_position = Vector3(-chunk_size/2.0*scale.x, -chunk_size/2.0*scale.y, -chunk_size/2.0*scale.z)
 	chunk_size_ex = chunk_size + 1
-	scalars = gen_scalar_field()
+	if end_seq:
+		scalars = end_scalar_field()
+	else:
+		scalars = gen_scalar_field()
 	for z in range(0, chunks_z):
 		for y in range(0, chunks_y):
 			for x in range(0, chunks_x):
 				old_gen(Vector3(x,y,z))
 
+func end_scalar_field():
+	var scalars:PackedFloat32Array = []
+	
+	
+	
+	for z in range(0, z_range):
+		for y in range(0, y_range):
+			for x in range(0, x_range):
+				var val = 1
+				
+				if (x >= 21 && x <= 39) && (y >= 29 && y <= 35) && (z >= 23 && z <= 40):
+					val = -1  # Inside the inner cube (this will overwrite the value inside the inner region)
+
+				# The inner cube (smaller) boundaries
+				if (x >= 29 && x <= 38) && (y >= 30 && y <= 34) && (z >= 30 && z <= 34):
+					val = 1  # Inside the inner cube (overwrite to -1 here)
+			
+				if x == 32 && z == 32 && (y >= 20 && y <= 38):
+					val = -1
+				#val = max(val, inv_sdf_ellip(Vector3(x,y,z), Vector3(3,3,3)))
+				#print(val)
+				scalars.append(val)
+	#print("done gen")
+	return scalars
+	
 func gen_scalar_field():
 	var scalars:PackedFloat32Array = []
 	for z in range(0, z_range):
@@ -58,6 +89,8 @@ func gen_scalar_field():
 			for x in range(0, x_range):
 				scalars.append(sdf_sphere(Vector3(x,y,z)))
 	return scalars
+
+
 
 
 func sdf_sphere(pos:Vector3):
@@ -75,9 +108,9 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	
-		
-	
-	custom_time += (delta * time_scale)
+	if !dead:
+		custom_time += (delta * time_scale)
+
 	$TestFlesh.material_override.set_shader_parameter("custom_time", custom_time)
 	#for chunk in chunks.values():
 	#	chunk.get_mesh().material_override.set_shader_parameter("custom_time", custom_time)
@@ -216,7 +249,7 @@ func dig(position:Vector3, ray_direction:Vector3):
 		#get_surface_override_material(0).set_shader_parameter("pulse_speed", 0.16)
 	for chunk_vec in chunks_to_reload:
 		old_gen(chunk_vec)
-	print("AMOUNT: ", amount)
+	#print("AMOUNT: ", amount)
 	get_parent().change_vol(amount)
 
 func _on_dig_effect_dur_timeout() -> void:
@@ -244,3 +277,6 @@ func get_volume():
 		if scalars[i] < 0.5:
 			vol += 1
 	return vol
+
+func end_sequence():
+	end_seq = true

@@ -47,3 +47,9 @@ func change_scene_to_menu():
 	await $AnimationPlayer.animation_finished
 	get_tree().change_scene_to_packed(MAIN_MENU)
 	$AnimationPlayer.play_backwards("dissolve")
+
+func change_scene_no_load(target:PackedScene):
+	$AnimationPlayer.play("dissolve")
+	await $AnimationPlayer.animation_finished
+	get_tree().change_scene_to_packed(target)
+	$AnimationPlayer.play_backwards("dissolve")

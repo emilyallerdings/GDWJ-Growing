@@ -1,0 +1,61 @@
+[gd_scene load_steps=5 format=3 uid="uid://8ueka1g82kp4"]
+
+[ext_resource type="PackedScene" uid="uid://dstyrbg6ip1l" path="res://models/scanner/retro_scanner.glb" id="1_p617p"]
+
+[sub_resource type="GDScript" id="GDScript_bhwge"]
+script/source = "extends Node3D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass
+	
+func  _unhandled_input(event: InputEvent) -> void:
+	var img:ViewportTexture = $SubViewport.get_texture()
+	var image:Image = img.get_image()
+	print(image)
+	image.save_png(\"scanner_icon.png\")
+
+
+	
+"
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_bhwge"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="Environment" id="Environment_g2wr0"]
+background_mode = 1
+fog_mode = 1
+fog_light_energy = 0.07
+fog_density = 1.0
+adjustment_enabled = true
+adjustment_brightness = 0.74
+adjustment_contrast = 1.26
+adjustment_saturation = 1.4
+
+[node name="ShovelIconScene" type="Node3D"]
+script = SubResource("GDScript_bhwge")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(292, 291)
+texture = SubResource("ViewportTexture_bhwge")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+own_world_3d = true
+transparent_bg = true
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport"]
+transform = Transform3D(-0.216201, 0.408438, -0.886812, -0.263705, 0.850108, 0.455824, 0.940062, 0.332406, -0.0760873, 0, 0.131274, 0)
+projection = 1
+fov = 49.1467
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewport"]
+environment = SubResource("Environment_g2wr0")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport/WorldEnvironment"]
+transform = Transform3D(0.933492, -0.201574, -0.29658, 0.205048, -0.378461, 0.90262, -0.294189, -0.903402, -0.311958, -0.00146419, 0.76341, 0.000477612)
+light_color = Color(0.473976, 0.473976, 0.473976, 1)
+light_energy = 5.181
+
+[node name="Sketchfab_Scene" parent="SubViewport" instance=ExtResource("1_p617p")]
+transform = Transform3D(-2.02499, 0.663263, -2.11175, -1.63844, 1.47526, 2.03448, 1.48826, 2.5266, -0.633556, 0.341191, -0.158788, -0.12833)

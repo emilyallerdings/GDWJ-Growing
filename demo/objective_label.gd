@@ -12,3 +12,6 @@ func obj_inject():
 	
 func obj_leave():
 	text = "OBJECTIVE:\nGO HOME"
+
+func obj_kill():
+	text = "OBJECTIVE:\n???"

@@ -1,6 +1,7 @@
-extends CSGSphere3D
+extends StaticBody3D
 
 @export var flesh_ball:Node3D
+var dead = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -19,5 +20,7 @@ func _on_audio_stream_player_3d_finished() -> void:
 
 
 func _on_beat_time_timeout() -> void:
+	if dead:
+		return
 	$AudioStreamPlayer3D.play()
 	pass # Replace with function body.

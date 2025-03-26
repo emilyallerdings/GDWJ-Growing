@@ -1,6 +1,7 @@
-[gd_scene load_steps=235 format=4 uid="uid://cy7w5uw7rchsh"]
+[gd_scene load_steps=244 format=4 uid="uid://cy7w5uw7rchsh"]
 
 [ext_resource type="Script" uid="uid://b3hjy5vj7e5c6" path="res://main.gd" id="1_ig7tw"]
+[ext_resource type="AudioStream" uid="uid://bn5p5jn4by61e" path="res://audio/scream.ogg" id="7_yysqy"]
 [ext_resource type="Script" uid="uid://0nrecsaexk6o" path="res://world_environment.gd" id="8_5vw27"]
 [ext_resource type="AudioStream" uid="uid://djgfc7megoinf" path="res://audio/flesh_ambiance.ogg" id="8_82xsv"]
 [ext_resource type="Script" uid="uid://d1x5k6gpd1ios" path="res://march_mesh.gd" id="8_kek77"]
@@ -87,11 +88,160 @@
 [ext_resource type="Material" uid="uid://b473ugelpmm7" path="res://models/syringemachine/mats/keyboard.tres" id="69_birbe"]
 [ext_resource type="Material" uid="uid://i5s1li3wcjv4" path="res://models/syringemachine/mats/Drawers.tres" id="70_f1p13"]
 [ext_resource type="AudioStream" uid="uid://cicmnmroe0xrf" path="res://audio/phone.ogg" id="79_ovcoh"]
+[ext_resource type="PackedScene" uid="uid://dstyrbg6ip1l" path="res://models/scanner/retro_scanner.glb" id="87_h6isl"]
 [ext_resource type="PackedScene" uid="uid://cwdx2bwbi523p" path="res://GrinderParticles.tscn" id="90_yysqy"]
+[ext_resource type="AudioStream" uid="uid://xc8ktmo66f2s" path="res://audio/home_phone.ogg" id="91_h6isl"]
 [ext_resource type="AudioStream" uid="uid://bqsmou28j4xqc" path="res://audio/ding.ogg" id="91_n5t1e"]
+[ext_resource type="PackedScene" uid="uid://cevtsrnhtw8bu" path="res://models/table/table_with_metal_legs.glb" id="92_53bls"]
+[ext_resource type="Script" uid="uid://8vyuhyx0xogt" path="res://addons/freecam_3D/freecam.gd" id="94_lwnsi"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w48qg"]
-albedo_color = Color(0.625575, 1.85303e-06, 2.40654e-07, 1)
+[sub_resource type="Shader" id="Shader_01g8m"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.4.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
+
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color, filter_linear_mipmap, repeat_enable;
+uniform ivec2 albedo_texture_size;
+uniform float point_size : hint_range(0.1, 128.0, 0.1);
+
+uniform float roughness : hint_range(0.0, 1.0);
+uniform sampler2D texture_metallic : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_roughness_r, filter_linear_mipmap, repeat_enable;
+
+uniform float specular : hint_range(0.0, 1.0, 0.01);
+uniform float metallic : hint_range(0.0, 1.0, 0.01);
+
+uniform sampler2D texture_normal : hint_roughness_normal, filter_linear_mipmap, repeat_enable;
+uniform float normal_scale : hint_range(-16.0, 16.0);
+varying vec3 uv1_triplanar_pos;
+
+uniform float uv1_blend_sharpness : hint_range(0.0, 150.0, 0.001);
+varying vec3 uv1_power_normal;
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+vec3 hash(vec3 p) {
+    p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
+             dot(p, vec3(269.5, 183.3, 246.1)),
+             dot(p, vec3(113.5, 271.9, 124.6)));
+    return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+}
+
+float perlin_noise(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+
+    vec3 u = f * f * (3.0 - 2.0 * f);
+
+    return mix(mix(mix(dot(hash(i + vec3(0.0, 0.0, 0.0)), f - vec3(0.0, 0.0, 0.0)),
+                       dot(hash(i + vec3(1.0, 0.0, 0.0)), f - vec3(1.0, 0.0, 0.0)), u.x),
+                   mix(dot(hash(i + vec3(0.0, 1.0, 0.0)), f - vec3(0.0, 1.0, 0.0)),
+                       dot(hash(i + vec3(1.0, 1.0, 0.0)), f - vec3(1.0, 1.0, 0.0)), u.x), u.y),
+               mix(mix(dot(hash(i + vec3(0.0, 0.0, 1.0)), f - vec3(0.0, 0.0, 1.0)),
+                       dot(hash(i + vec3(1.0, 0.0, 1.0)), f - vec3(1.0, 0.0, 1.0)), u.x),
+                   mix(dot(hash(i + vec3(0.0, 1.0, 1.0)), f - vec3(0.0, 1.0, 1.0)),
+                       dot(hash(i + vec3(1.0, 1.0, 1.0)), f - vec3(1.0, 1.0, 1.0)), u.x), u.y), u.z);
+}
+
+float get_blended_noise(vec3 vertex_position, float time) {
+    // Sample noise at the current position and a few offsets
+    float noise1 = perlin_noise(vertex_position * 2.0 + time);
+    float noise2 = perlin_noise((vertex_position + vec3(0.1, 0.0, 0.0)) * 2.0 + time); // X offset
+    float noise3 = perlin_noise((vertex_position + vec3(0.0, 0.1, 0.0)) * 2.0 + time); // Y offset
+    float noise4 = perlin_noise((vertex_position + vec3(0.0, 0.0, 0.1)) * 2.0 + time); // Z offset
+
+    // Average the noise samples to blend them
+    return (noise1 + noise2 + noise3 + noise4) * 0.25;
+}
+
+void vertex() {
+
+	float noise = get_blended_noise(VERTEX * 1.0, TIME * 0.5 * 1.0);
+    float pulse = (noise - 0.5) * 2.0 * 0.05;
+    VERTEX +=  NORMAL * pulse;
+	vec3 normal = NORMAL;
+
+	TANGENT = vec3(0.0, 0.0, -1.0) * abs(normal.x);
+	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.y);
+	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.z);
+	TANGENT = normalize(TANGENT);
+
+	BINORMAL = vec3(0.0, 1.0, 0.0) * abs(normal.x);
+	BINORMAL += vec3(0.0, 0.0, -1.0) * abs(normal.y);
+	BINORMAL += vec3(0.0, 1.0, 0.0) * abs(normal.z);
+	BINORMAL = normalize(BINORMAL);
+
+	// UV1 Triplanar: Enabled
+	uv1_power_normal = pow(abs(NORMAL), vec3(uv1_blend_sharpness));
+	uv1_triplanar_pos = VERTEX * uv1_scale + uv1_offset;
+	uv1_power_normal /= dot(uv1_power_normal, vec3(1.0));
+	uv1_triplanar_pos *= vec3(1.0, -1.0, 1.0);
+
+	noise = get_blended_noise(VERTEX * 1.2, TIME * 0.2 * 1.0);
+    pulse = (noise - 0.5) * 2.0 * 0.05;
+    VERTEX +=  NORMAL * pulse;
+}
+
+vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
+	vec4 samp = vec4(0.0);
+	samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;
+	samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;
+	samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;
+	return samp;
+}
+
+void fragment() {
+	vec4 albedo_tex = triplanar_texture(texture_albedo, uv1_power_normal, uv1_triplanar_pos);
+	ALBEDO = albedo.rgb * albedo_tex.rgb;
+
+	float metallic_tex = dot(triplanar_texture(texture_metallic, uv1_power_normal, uv1_triplanar_pos), metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	SPECULAR = specular;
+
+	vec4 roughness_texture_channel = vec4(1.0, 0.0, 0.0, 0.0);
+	float roughness_tex = dot(triplanar_texture(texture_roughness, uv1_power_normal, uv1_triplanar_pos), roughness_texture_channel);
+	ROUGHNESS = roughness_tex * roughness;
+
+	// Normal Map: Enabled
+	NORMAL_MAP = triplanar_texture(texture_normal, uv1_power_normal, uv1_triplanar_pos).rgb;
+	NORMAL_MAP_DEPTH = normal_scale;
+}
+"
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_53bls"]
+load_path = "res://.godot/imported/others_0001_color_1k.jpg-18bb58a2326f91063f7f24acadfba1c3.s3tc.ctex"
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_lwnsi"]
+load_path = "res://.godot/imported/others_0001_normal_opengl_1k.png-c5be4058519c10c13727fc9b1e3cf117.s3tc.ctex"
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_41lik"]
+load_path = "res://.godot/imported/others_0001_roughness_1k.jpg-940e393b1c553e1c4af54720b5d9b644.s3tc.ctex"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jbvwl"]
+render_priority = 0
+shader = SubResource("Shader_01g8m")
+shader_parameter/albedo = Color(0.564706, 0.501961, 0.501961, 1)
+shader_parameter/texture_albedo = SubResource("CompressedTexture2D_53bls")
+shader_parameter/albedo_texture_size = Vector2i(1024, 1024)
+shader_parameter/point_size = 1.0
+shader_parameter/roughness = 1.0
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/texture_roughness = SubResource("CompressedTexture2D_41lik")
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/texture_normal = SubResource("CompressedTexture2D_lwnsi")
+shader_parameter/normal_scale = 1.0
+shader_parameter/uv1_blend_sharpness = 1.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_ryguw"]
 random_pitch = 1.1
@@ -102,7 +252,10 @@ stream_1/stream = ExtResource("15_cegan")
 stream_2/stream = ExtResource("16_82xsv")
 stream_3/stream = ExtResource("17_getpj")
 
-[sub_resource type="Environment" id="Environment_yysqy"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_53bls"]
+radius = 0.9
+
+[sub_resource type="Environment" id="Environment_41lik"]
 background_mode = 1
 background_color = Color(0.8, 0.8, 0.8, 1)
 
@@ -724,14 +877,6 @@ _data = {
 &"dig": SubResource("Animation_yaehf")
 }
 
-[sub_resource type="PrismMesh" id="PrismMesh_cegan"]
-size = Vector3(0.2, 0.2, 0.8)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_82xsv"]
-albedo_color = Color(0.101961, 0.0980392, 0.121569, 1)
-metallic = 0.54
-roughness = 0.54
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vm2eb"]
 resource_name = "Label"
 cull_mode = 2
@@ -1021,6 +1166,7 @@ const SHOVEL_ICON = preload(\"res://shovel_icon.png\")
 @onready var texture_rect: TextureRect = $TextureRect
 const FLESH_ICON = preload(\"res://flesh_icon.png\")
 const SYRINGE_ICON = preload(\"res://syringe_icon.png\")
+const SCANNER_ICON = preload(\"res://scanner_icon.png\")
 var item:String = \"\"
 
 func set_item(item_name):
@@ -1031,6 +1177,8 @@ func set_item(item_name):
 		$TextureRect.texture = FLESH_ICON
 	elif item_name == \"INJECTION\":
 		$TextureRect.texture = SYRINGE_ICON
+	elif item_name == \"SCANNER\":
+		$TextureRect.texture = SCANNER_ICON
 	else:
 		$TextureRect.texture = null
 "
@@ -1233,7 +1381,7 @@ shadow_mesh = SubResource("ArrayMesh_1poh1")
 data = PackedVector3Array(0.925, -0.3333, 0, 1.6167, -0.3333, 0.5833, 0.925, -0.3333, 0.5833, 1.6167, -0.3333, 0.5833, 0.925, -0.3333, 0, 1.6167, -0.3333, 0, 0.925, 0.3333, 0.5833, 1.6167, 0.3333, 0, 0.925, 0.3333, 0, 1.6167, 0.3333, 0, 0.925, 0.3333, 0.5833, 1.6167, 0.3333, 0.5833)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4obbf"]
-size = Vector3(2.94638, 2.92621, 4.00256)
+size = Vector3(1.53652, 2.92621, 4.00256)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3vo7y"]
 resource_name = "Door"
@@ -2037,7 +2185,7 @@ size = Vector3(0.516388, 0.193573, 0.459351)
 size = Vector3(0.400635, 0.0656128, 1.8613)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_cegan"]
-size = Vector3(0.189697, 0.19104, 0.823486)
+size = Vector3(0.189697, 0.263458, 0.182495)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_yaehf"]
 size = Vector3(44.1261, 29.3416, 78.3572)
@@ -2138,17 +2286,25 @@ height = 0.1
 emission_enabled = true
 emission = Color(1, 1, 1, 1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_53bls"]
+size = Vector3(1.51611, 0.99585, 3.28461)
+
 [node name="main" type="Node3D"]
 script = ExtResource("1_ig7tw")
 
-[node name="heart" type="CSGSphere3D" parent="." node_paths=PackedStringArray("flesh_ball")]
+[node name="heart" type="StaticBody3D" parent="." node_paths=PackedStringArray("flesh_ball")]
+unique_name_in_owner = true
+transform = Transform3D(1.75, 0, 0, 0, 1.75, 0, 0, 0, 1.75, 0, 0, 0)
 visible = false
-layers = 5
-radius = 1.0
-radial_segments = 8
-material = SubResource("StandardMaterial3D_w48qg")
+collision_layer = 0
+collision_mask = 0
 script = ExtResource("14_cegan")
 flesh_ball = NodePath("../FleshBall")
+
+[node name="heartmesh" parent="heart" instance=ExtResource("16_swlj1")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+skeleton = NodePath("../../Character/Head/ItemContainer")
+surface_material_override/0 = SubResource("ShaderMaterial_jbvwl")
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="heart"]
 stream = SubResource("AudioStreamRandomizer_ryguw")
@@ -2160,6 +2316,15 @@ area_mask = 0
 
 [node name="beat_time" type="Timer" parent="heart"]
 one_shot = true
+
+[node name="dead" type="AudioStreamPlayer3D" parent="heart"]
+stream = ExtResource("7_yysqy")
+attenuation_model = 3
+volume_db = -10.0
+pitch_scale = 0.8
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="heart"]
+shape = SubResource("SphereShape3D_53bls")
 
 [node name="FleshBall" type="Node3D" parent="." node_paths=PackedStringArray("main") groups=["fleshball"]]
 transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -8, -8, -8)
@@ -2191,7 +2356,7 @@ visible = false
 shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_yysqy")
+environment = SubResource("Environment_41lik")
 script = ExtResource("8_5vw27")
 
 [node name="Character" type="CharacterBody3D" parent="." node_paths=PackedStringArray("HEAD", "CAMERA", "HEADBOB_ANIMATION", "JUMP_ANIMATION", "CROUCH_ANIMATION", "COLLISION_MESH") groups=["player"]]
@@ -2289,11 +2454,8 @@ libraries = {
 &"": SubResource("AnimationLibrary_cegan")
 }
 
-[node name="ScannerPlaceholder2" type="MeshInstance3D" parent="Character/Head/ItemContainer"]
-transform = Transform3D(-0.978318, 0, -0.207109, 0, 1, 0, 0.207109, 0, -0.978318, 0.262566, -0.177666, -0.64431)
-mesh = SubResource("PrismMesh_cegan")
-skeleton = NodePath("../../../../SCANNER")
-surface_material_override/0 = SubResource("StandardMaterial3D_82xsv")
+[node name="ScannerPlaceholder2" parent="Character/Head/ItemContainer" instance=ExtResource("87_h6isl")]
+transform = Transform3D(1.8, 0, 0, 0, 1.48165, 1.02212, 0, -1.02212, 1.48165, 0.237783, -0.262056, -0.392545)
 
 [node name="HQFlesh" parent="Character/Head/ItemContainer" instance=ExtResource("16_swlj1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.26196e-08, -0.398316, -0.746251)
@@ -2434,7 +2596,7 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ycdy4")
 script = ExtResource("14_vivmo")
-dialog_1 = Array[String](["BOSS", "Hello. Welcome to the GreenFresh LabMeat team. We are conducting research to harvest humane, lab-grown meat for human consumption.", "Your role as a researcher is simple: maintain and grow the product to meet the demands of our shareholders.", "Do not concern yourself with any... reactions from the product. It is not conscious. Any pain responses are purely vestigial.", "A HARVESTING TOOL and a SCANNER will be inside the lab to help you locate the High Quality Meat.", "Once you have the High Quality Meat, put it in the machine in the corner of the lab for processing.", "Then inject the product with the generated growth hormones.", "Also...", "DO NOT REDUCE THE PRODUCT BELOW 50% MASS.", "If you kill the product there will be... undesirable consequences for you.", "We will contact you if further instructions are needed. Good luck."])
+dialog_1 = Array[String](["BOSS", "Hello. Welcome to the GreenFresh LabMeat team. We are conducting research to harvest humane, lab-grown meat for human consumption.", "Your role as a researcher is simple: maintain and grow the product to meet the demands of our shareholders.", "Do not concern yourself with any... reactions from the product. It is not conscious. Any pain responses are purely vestigial.", "A HARVESTING TOOL and a SCANNER will be inside the lab to help you locate the High Quality Meat.", "Once you have the High Quality Meat, put it in the machine in the corner of the lab for processing.", "Then inject the product with the generated growth hormones.", "Also...", "DO NOT REDUCE THE PRODUCT BELOW 50% MASS.", "If you kill the product you WILL be held accountable.", "We will contact you if further instructions are needed. Good luck."])
 dialog_2 = Array[String](["BOSS", "Great work last week. The product is growing well.", "However... the shareholders are expecting faster returns.", "This week, you'll need to double the injections. We can’t afford stagnation.", "Good luck."])
 dialog_3 = Array[String](["BOSS", "Shareholders are breathing down my neck. We need this to grow faster. This time three injections."])
 
@@ -2672,7 +2834,7 @@ collision_layer = 0
 collision_mask = 8
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Scene/AirChamberArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.29347, 1.45957, -0.00201394)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.22296, 1.45957, -0.00201394)
 shape = SubResource("BoxShape3D_4obbf")
 
 [node name="airlockdoor" type="Node3D" parent="Scene"]
@@ -2747,15 +2909,16 @@ shape = SubResource("BoxShape3D_e71vb")
 
 [node name="Chamber" type="Node3D" parent="Scene"]
 
-[node name="Plane_009" type="MeshInstance3D" parent="Scene/Chamber"]
+[node name="Ring" type="MeshInstance3D" parent="Scene/Chamber"]
+unique_name_in_owner = true
 transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 5.93387, 0, 8.95989e-07)
 mesh = SubResource("ArrayMesh_0ei78")
 skeleton = NodePath("")
 surface_material_override/0 = SubResource("StandardMaterial3D_pjuso")
 
-[node name="StaticBody3D" type="StaticBody3D" parent="Scene/Chamber/Plane_009"]
+[node name="StaticBody3D" type="StaticBody3D" parent="Scene/Chamber/Ring"]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Scene/Chamber/Plane_009/StaticBody3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Scene/Chamber/Ring/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_uypp3")
 
 [node name="Plane_012" type="MeshInstance3D" parent="Scene/Chamber"]
@@ -2905,7 +3068,7 @@ unit_size = 5.0
 max_db = 0.0
 
 [node name="SHOVEL" type="StaticBody3D" parent="." groups=["pickup"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.0948, -4.64143, -3.93688)
+transform = Transform3D(0.73373, 0.614777, -0.289292, 0, 0.425779, 0.904827, 0.679441, -0.663899, 0.312407, 9.07078, -3.70285, 2.07093)
 collision_layer = 16
 collision_mask = 0
 script = ExtResource("28_qsp4k")
@@ -2919,19 +3082,17 @@ shape = SubResource("BoxShape3D_074og")
 debug_color = Color(0, 0.6, 0.701961, 1)
 
 [node name="SCANNER" type="StaticBody3D" parent="." groups=["pickup"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.4984, -4.55867, -3.93688)
+transform = Transform3D(-0.833429, -0.291351, 1.21265, 1.23619, -5.40355e-08, 0.849609, -0.165023, 1.47143, 0.24011, 8.17811, -3.50921, 1.79887)
 collision_layer = 16
 collision_mask = 0
 script = ExtResource("28_qsp4k")
 pickup_name = "SCANNER"
 
-[node name="ScannerPlaceholder" type="MeshInstance3D" parent="SCANNER"]
-mesh = SubResource("PrismMesh_cegan")
-surface_material_override/0 = SubResource("StandardMaterial3D_82xsv")
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="SCANNER"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0152588, 0.00714111, 0.00280762)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0152588, 0.088089, -0.0482787)
 shape = SubResource("BoxShape3D_cegan")
+
+[node name="Sketchfab_Scene" parent="SCANNER" instance=ExtResource("87_h6isl")]
 
 [node name="Area3D" type="Area3D" parent="."]
 collision_mask = 9
@@ -3086,6 +3247,27 @@ shadow_enabled = true
 spot_range = 11.9223
 spot_attenuation = -0.35
 spot_angle = 45.8
+
+[node name="table" parent="." instance=ExtResource("92_53bls")]
+transform = Transform3D(-0.551937, 0, -0.833886, 0, 1, 0, 0.833886, 0, -0.551937, 8.71743, -3.7829, 2.75825)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="table"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="table/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0100088, -0.390014, 0.0128479)
+shape = SubResource("BoxShape3D_53bls")
+
+[node name="HomePhone" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("91_h6isl")
+volume_db = -15.0
+
+[node name="Freecam3D" type="Camera3D" parent="."]
+current = true
+script = ExtResource("94_lwnsi")
+metadata/_custom_type_script = "uid://8vyuhyx0xogt"
+
+[node name="OmniLight3D" type="OmniLight3D" parent="Freecam3D"]
+omni_range = 545.396
 
 [connection signal="finished" from="heart/AudioStreamPlayer3D" to="heart" method="_on_audio_stream_player_3d_finished"]
 [connection signal="timeout" from="heart/beat_time" to="heart" method="_on_beat_time_timeout"]

@@ -1,26 +1,17 @@
 [gd_scene load_steps=7 format=3 uid="uid://c6tx11kgjb13w"]
 
 [ext_resource type="Script" uid="uid://dutpcp83k0s27" path="res://test_scene.gd" id="1_2nij2"]
+[ext_resource type="Environment" uid="uid://d4b886virgwir" path="res://blank_env.tres" id="2_7cbxl"]
 [ext_resource type="Script" uid="uid://d1x5k6gpd1ios" path="res://march_mesh.gd" id="3_7cbxl"]
 [ext_resource type="AudioStream" uid="uid://djgfc7megoinf" path="res://audio/flesh_ambiance.ogg" id="4_8pr8v"]
 [ext_resource type="Script" uid="uid://8bm1mkv02sop" path="res://cam_anchor.gd" id="5_2nij2"]
 [ext_resource type="Material" uid="uid://dc6pturmi0sva" path="res://fleshmat2.tres" id="5_buypi"]
 
-[sub_resource type="Environment" id="Environment_njel3"]
-background_mode = 1
-fog_mode = 1
-fog_light_energy = 0.07
-fog_density = 1.0
-adjustment_enabled = true
-adjustment_brightness = 0.74
-adjustment_contrast = 1.26
-adjustment_saturation = 1.4
-
 [node name="LabMeatTitle" type="Node3D"]
 script = ExtResource("1_2nij2")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_njel3")
+environment = ExtResource("2_7cbxl")
 
 [node name="FleshBall" type="Node3D" parent="." node_paths=PackedStringArray("main") groups=["fleshball"]]
 transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)

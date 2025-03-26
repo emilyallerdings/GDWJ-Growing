@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://c5qs6jd35nu3s"]
+[gd_scene load_steps=19 format=3 uid="uid://c5qs6jd35nu3s"]
 
 [ext_resource type="Script" uid="uid://dpvfg8wvwjl01" path="res://transition.gd" id="1_ws5yv"]
 [ext_resource type="PackedScene" uid="uid://b62bwm7x8eat7" path="res://FleshParticles.tscn" id="2_jaa4l"]
@@ -9,6 +9,9 @@
 [ext_resource type="PackedScene" uid="uid://c0nqh1u4cgkkj" path="res://syringe.tscn" id="7_4g0lj"]
 [ext_resource type="PackedScene" uid="uid://cwdx2bwbi523p" path="res://GrinderParticles.tscn" id="7_a81jc"]
 [ext_resource type="PackedScene" uid="uid://hbkbmksju2vj" path="res://hq_fleshHANDS.tscn" id="8_4g0lj"]
+[ext_resource type="PackedScene" uid="uid://dstyrbg6ip1l" path="res://models/scanner/retro_scanner.glb" id="9_w8k0l"]
+[ext_resource type="PackedScene" uid="uid://cju0b0s0ss0bp" path="res://steakfina.tscn" id="10_4c7ec"]
+[ext_resource type="PackedScene" uid="uid://bs7bj22wfx0nl" path="res://models/heart/heart.glb" id="11_01mxn"]
 
 [sub_resource type="Animation" id="Animation_ws5yv"]
 length = 0.001
@@ -117,8 +120,16 @@ transform = Transform3D(-0.1, 0, -1.50996e-08, 0, 0.1, 0, 1.50996e-08, 0, -0.1, 
 
 [node name="HQFlesh" parent="SubViewport" instance=ExtResource("8_4g0lj")]
 
+[node name="Sketchfab_Scene3" parent="SubViewport" instance=ExtResource("9_w8k0l")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.23943, 8.26279, 3.45518)
+
+[node name="Object_2" parent="SubViewport" instance=ExtResource("10_4c7ec")]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 14.1425, -3.93848, -20.5655)
+
+[node name="Sketchfab_Scene4" parent="SubViewport" instance=ExtResource("11_01mxn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.51157, -2.9159, 0)
+
 [node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(1, 1, 1, 0.160784)
 position = Vector2(609, 332)
 scale = Vector2(0.74, 0.639)
 texture = SubResource("ViewportTexture_y2wa0")

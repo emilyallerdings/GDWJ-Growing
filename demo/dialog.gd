@@ -30,7 +30,7 @@ var speaker = "SELF"
 
 var can_click = true
 
-var testing = true
+var testing = false
 
 func get_phone_dia(num):
 	if testing:
@@ -80,7 +80,8 @@ func play_dialog(dialog, num):
 	$LetterTimer.start(letter_dur)
 
 func _unhandled_input(event: InputEvent) -> void:
-	
+	if event.is_action_pressed("ui_cancel"):
+		return
 	if event.is_released():
 		speed_mod = 1.0
 	
@@ -96,6 +97,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if dialog_finished && visible:
 			$NextDialog.visible = false
 			self.visible = false
+			dialog_ended.emit()
 			print("can click false")
 			await get_tree().create_timer(0.1).timeout
 			print("can click true")
@@ -143,7 +145,7 @@ func _on_letter_timer_timeout() -> void:
 			$NextDialog/AnimationPlayer.play("blink")
 			next_dialog = false
 			dialog_finished = true
-			dialog_ended.emit()
+			
 			dialog_arr_num = 1
 			return
 		$NextDialog.visible = true
